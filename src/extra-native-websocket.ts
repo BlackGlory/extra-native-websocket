@@ -13,21 +13,27 @@ export enum State {
 , Closing
 }
 
+enum ReadyState {
+  CONNECTING = 0
+, OPEN = 1
+, CLOSING = 2
+, CLOSED = 3
+}
+
 export class ExtraNativeWebSocket {
   private instance?: WebSocket
   private eventListeners: Map<string, Set<Function>> = new Map()
-  private binaryType: BinaryType =
-    BinaryType.Blob
+  private binaryType: BinaryType = BinaryType.Blob
 
   constructor(private createWebSocket: () => WebSocket) {}
 
   getState(): State {
     if (this.instance) {
       switch (this.instance.readyState) {
-        case 0: return State.Connecting
-        case 1: return State.Connected
-        case 2: return State.Closing
-        case 3: return State.Closed
+        case ReadyState.CONNECTING: return State.Connecting
+        case ReadyState.OPEN: return State.Connected
+        case ReadyState.CLOSING: return State.Closing
+        case ReadyState.CLOSED: return State.Closed
         default: throw new Error('Unknown state')
       }
     } else {
