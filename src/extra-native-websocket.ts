@@ -1,5 +1,6 @@
 import { assert } from '@blackglory/prelude'
 import { WebSocketError } from './websocket-error'
+import { Queue } from '@blackglory/structures'
 
 export enum BinaryType {
   Blob
@@ -24,6 +25,7 @@ export class ExtraNativeWebSocket {
   private instance?: WebSocket
   private eventListeners: Map<string, Set<Function>> = new Map()
   private binaryType: BinaryType = BinaryType.Blob
+  protected unsentMessages = new Queue<string | ArrayBufferLike | Blob | ArrayBufferView>()
 
   constructor(private createWebSocket: () => WebSocket) {}
 
@@ -99,28 +101,21 @@ export class ExtraNativeWebSocket {
    */
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      assert(
-        this.getState() === State.Closing ||
-        this.getState() === State.Closed
-      , 'WebSocket is not closed'
-      )
+      assert(this.getState() === State.Closed, 'WebSocket is not closed')
 
-      const ws = this.createWebSocket()
-      ws.addEventListener('error', errorListener)
-      ws.addEventListener('open', () => {
-        ws.removeEventListener('close', closeListener)
-        ws.removeEventListener('error', errorListener)
-        resolve()
-      })
+      const self = this
+      const ws = this.instance = this.createWebSocket()
 
+      ws.addEventListener('error', errorListener, { once: true })
       for (const [event, listeners] of this.eventListeners) {
         for (const listener of listeners) {
           ws.addEventListener(event as any, listener as any)
         }
       }
 
-      this.instance = ws
       this.setBinaryType(this.binaryType)
+
+      ws.addEventListener('open', openListener, { once: true })
 
       function errorListener(event: Event): void {
         ws.addEventListener('close', closeListener, { once: true })
@@ -128,6 +123,15 @@ export class ExtraNativeWebSocket {
 
       function closeListener(event: CloseEvent): void {
         reject(new WebSocketError(event.code, event.reason))
+      }
+
+      function openListener(event: Event): void {
+        ws.removeEventListener('error', errorListener)
+        ws.removeEventListener('close', closeListener)
+        for (let size = self.unsentMessages.size; size--;) {
+          self.send(self.unsentMessages.dequeue()!)
+        }
+        resolve()
       }
     })
   }
@@ -137,7 +141,9 @@ export class ExtraNativeWebSocket {
       assert(this.instance, 'WebSocket is not created')
 
       switch (this.getState()) {
-        case State.Closed: return resolve()
+        case State.Closed:
+          resolve()
+          break
         case State.Closing:
           this.instance.addEventListener('close', () => resolve(), { once: true })
           break
@@ -149,8 +155,10 @@ export class ExtraNativeWebSocket {
   }
 
   send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
-    assert(this.instance, 'WebSocket is not created')
-
-    this.instance.send(data)
+    if (this.getState() === State.Connected) {
+      this.instance!.send(data)
+    } else {
+      this.unsentMessages.enqueue(data)
+    }
   }
 }

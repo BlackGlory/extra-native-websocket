@@ -58,6 +58,7 @@
   "dependencies": {
     "@blackglory/errors": "^2.2.1",
     "@blackglory/prelude": "^0.1.1",
+    "@blackglory/structures": "^0.5.1",
     "extra-abort": "^0.1.2",
     "extra-promise": "^2.0.0"
   }
