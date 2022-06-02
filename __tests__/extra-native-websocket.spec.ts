@@ -129,13 +129,28 @@ describe('ExtraNativeWebsocket', () => {
     })
   })
 
-  test('bad connection', async () => {
-    const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
+  describe('bad connection', () => {
+    test('server is not open', async () => {
+      const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
 
-    const err = await getErrorPromise(ws.connect())
+      const err = await getErrorPromise(ws.connect())
 
-    expect(err).toBeInstanceOf(WebSocketError)
-    expect((err as WebSocketError).code).toBe(1006)
+      expect(err).toBeInstanceOf(WebSocketError)
+      expect((err as WebSocketError).code).toBe(1006)
+    })
+
+    test('server down', async () => {
+      const server = new Server({ port: 8080 })
+
+      const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
+      try {
+        await ws.connect()
+        server.close()
+      } finally {
+        await ws.close()
+        server.close()
+      }
+    })
   })
 })
 
