@@ -6,9 +6,9 @@ import { delay } from 'extra-promise'
 describe('autoReconnect', () => {
   test('reconnect', async () => {
     const server = new Server({ port: 8080 })
-    server.on('connection', socket => 
+    server.on('connection', socket => {
       socket.on('message', () => socket.close())
-    )
+    })
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
     const cancel = autoReconnect(ws, 0)
@@ -28,9 +28,9 @@ describe('autoReconnect', () => {
 
   test('timeout', async () => {
     const server = new Server({ port: 8080 })
-    server.on('connection', socket => 
+    server.on('connection', socket => {
       socket.on('message', () => socket.close())
-    )
+    })
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
     const cancel = autoReconnect(ws, 2000)
@@ -50,9 +50,9 @@ describe('autoReconnect', () => {
 
   test('cancel', async () => {
     const server = new Server({ port: 8080 })
-    server.on('connection', socket => 
+    server.on('connection', socket => {
       socket.on('message', () => socket.close())
-    )
+    })
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
     const cancel = autoReconnect(ws, 2000)
