@@ -1,25 +1,52 @@
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket'
-import { delay } from 'extra-promise'
-import { AbortController } from 'extra-abort'
+import { calculateExponentialBackoffTimeout } from 'extra-timers'
 import { pass } from '@blackglory/prelude'
+import { delay } from 'extra-promise'
 import { waitForFunction } from '@blackglory/wait-for'
 
-export function autoReconnect(ws: ExtraNativeWebSocket, timeout: number = 0): () => void {
+export function autoReconnectWithExponentialBackOff(
+  ws: ExtraNativeWebSocket
+, {
+    baseTimeout
+  , maxTimeout = Infinity
+  , factor = 2
+  , jitter = true
+  }: {
+    baseTimeout: number
+    maxTimeout?: number
+    factor?: number
+    jitter?: boolean
+  }
+): () => void {
   const controller = new AbortController()
 
+  // Make sure the error listener is added, prevent crashes due to uncaught errors.
+  ws.addEventListener('error', ignore)
   ws.addEventListener('close', listener)
   return () => {
     controller.abort()
     ws.removeEventListener('close', listener)
+    ws.removeEventListener('error', ignore)
+  }
+
+  function ignore() {
+    pass()
   }
 
   async function listener(): Promise<void> {
     ws.removeEventListener('close', listener)
 
+    let retries = 0
     while (true) {
       if (controller.signal.aborted) return
 
-      await delay(timeout)
+      await delay(calculateExponentialBackoffTimeout({
+        retries
+      , baseTimeout
+      , maxTimeout
+      , factor
+      , jitter
+      }))
       if (controller.signal.aborted) return
 
       try {
@@ -30,6 +57,7 @@ export function autoReconnect(ws: ExtraNativeWebSocket, timeout: number = 0): ()
         ws.addEventListener('close', listener)
         break
       } catch {
+        retries++
         pass()
       }
     }

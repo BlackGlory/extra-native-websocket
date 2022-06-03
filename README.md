@@ -59,3 +59,16 @@ class ExtraNativeWebSocket {
 ```ts
 function autoReconnect(ws: ExtraNativeWebSocket, timeout?: number): () => void
 ```
+
+### autoReconnectWithExponentialBackOff
+```ts
+function autoReonnectWithExponentialBackOff(
+  ws: ExtraWebSocket
+, options: {
+    baseTimeout: number
+    maxTimeout?: number
+    factor?: number = 2
+    jitter?: boolean = true
+  }
+): () => void
+```
