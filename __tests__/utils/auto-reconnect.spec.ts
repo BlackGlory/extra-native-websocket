@@ -38,9 +38,12 @@ describe('autoReconnect', () => {
       await ws.connect()
       ws.send('foo')
       await delay(1000)
-      const state = ws.getState()
+      const state1 = ws.getState()
+      await delay(2000)
+      const state2 = ws.getState()
 
-      expect(state).toBe(State.Closed)
+      expect(state1).toBe(State.Closed)
+      expect(state2).not.toBe(State.Closed)
     } finally {
       cancel()
       await ws.close()
