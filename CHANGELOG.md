@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/BlackGlory/extra-native-websocket/compare/v0.2.2...v0.3.0) (2022-06-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* addEventListener, removeEventListener are removed
+
+* use Emitter from @blackglory/structures ([e4f9bca](https://github.com/BlackGlory/extra-native-websocket/commit/e4f9bca9d956c1046bccd4833003328ba50f69d1))
+
 ### [0.2.2](https://github.com/BlackGlory/extra-native-websocket/compare/v0.2.1...v0.2.2) (2022-06-03)
 
 
