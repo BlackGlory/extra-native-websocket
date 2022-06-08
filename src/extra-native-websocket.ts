@@ -22,10 +22,10 @@ enum ReadyState {
 }
 
 export class ExtraNativeWebSocket extends Emitter<{
-  message: [event: MessageEvent]
-  close: [event: CloseEvent]
-  error: [event: Event]
   open: [event: Event]
+  message: [event: MessageEvent]
+  error: [event: Event]
+  close: [event: CloseEvent]
 }> {
   private instance?: WebSocket
   private binaryType: BinaryType = BinaryType.Blob
@@ -82,9 +82,9 @@ export class ExtraNativeWebSocket extends Emitter<{
       ws.addEventListener('error', errorListener, { once: true })
 
       ws.addEventListener('open', event => this.emit('open', event))
-      ws.addEventListener('close', event => this.emit('close', event))
       ws.addEventListener('message', event => this.emit('message', event))
       ws.addEventListener('error', event => this.emit('error', event))
+      ws.addEventListener('close', event => this.emit('close', event))
 
       this.setBinaryType(this.binaryType)
 

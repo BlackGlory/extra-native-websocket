@@ -22,7 +22,7 @@ export function autoReconnectWithExponentialBackOff(
 
   // Make sure the error listener is added, prevent crashes due to uncaught errors.
   const removeErrorListener = ws.on('error', pass)
-  let removeCloseListener = ws.on('close', closeListener)
+  let removeCloseListener = ws.once('close', closeListener)
 
   return () => {
     controller.abort()
@@ -31,8 +31,6 @@ export function autoReconnectWithExponentialBackOff(
   }
 
   async function closeListener(): Promise<void> {
-    removeCloseListener()
-
     let retries = 0
     while (true) {
       if (controller.signal.aborted) return
@@ -51,7 +49,7 @@ export function autoReconnectWithExponentialBackOff(
         await ws.connect()
         if (controller.signal.aborted) return
 
-        removeCloseListener = ws.on('close', closeListener)
+        removeCloseListener = ws.once('close', closeListener)
         break
       } catch {
         retries++

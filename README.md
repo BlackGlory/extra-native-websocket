@@ -32,10 +32,10 @@ enum State {
 }
 
 class ExtraNativeWebSocket extends Emitter<{
-  message: [event: MessageEvent]
-  close: [event: CloseEvent]
-  error: [event: Event]
   open: [event: Event]
+  message: [event: MessageEvent]
+  error: [event: Event]
+  close: [event: CloseEvent]
 }> {
   constructor(createWebSocket: () => WebSocket)
 

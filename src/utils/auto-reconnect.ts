@@ -7,7 +7,7 @@ import { waitForFunction } from '@blackglory/wait-for'
 export function autoReconnect(ws: ExtraNativeWebSocket, timeout: number = 0): () => void {
   const controller = new AbortController()
 
-  let removeCloseListener = ws.on('close', closeListener)
+  let removeCloseListener = ws.once('close', closeListener)
 
   return () => {
     controller.abort()
@@ -15,8 +15,6 @@ export function autoReconnect(ws: ExtraNativeWebSocket, timeout: number = 0): ()
   }
 
   async function closeListener(): Promise<void> {
-    removeCloseListener()
-
     while (true) {
       if (controller.signal.aborted) return
 
@@ -28,7 +26,7 @@ export function autoReconnect(ws: ExtraNativeWebSocket, timeout: number = 0): ()
         await ws.connect()
         if (controller.signal.aborted) return
 
-        removeCloseListener = ws.on('close', closeListener)
+        removeCloseListener = ws.once('close', closeListener)
         break
       } catch {
         pass()
