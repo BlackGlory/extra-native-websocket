@@ -21,20 +21,17 @@ export function autoReconnectWithExponentialBackOff(
   const controller = new AbortController()
 
   // Make sure the error listener is added, prevent crashes due to uncaught errors.
-  ws.addEventListener('error', ignore)
-  ws.addEventListener('close', listener)
+  const removeErrorListener = ws.on('error', pass)
+  let removeCloseListener = ws.on('close', closeListener)
+
   return () => {
     controller.abort()
-    ws.removeEventListener('close', listener)
-    ws.removeEventListener('error', ignore)
+    removeCloseListener()
+    removeErrorListener()
   }
 
-  function ignore() {
-    pass()
-  }
-
-  async function listener(): Promise<void> {
-    ws.removeEventListener('close', listener)
+  async function closeListener(): Promise<void> {
+    removeCloseListener()
 
     let retries = 0
     while (true) {
@@ -54,7 +51,7 @@ export function autoReconnectWithExponentialBackOff(
         await ws.connect()
         if (controller.signal.aborted) return
 
-        ws.addEventListener('close', listener)
+        removeCloseListener = ws.on('close', closeListener)
         break
       } catch {
         retries++

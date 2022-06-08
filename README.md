@@ -17,6 +17,8 @@ class WebSocketError extends CustomError {
 
 ### ExtraNativeWebSocket
 ```ts
+import { Emitter } from '@blackglory/structures'
+
 enum BinaryType {
   Blob
 , ArrayBuffer
@@ -29,7 +31,12 @@ enum State {
 , Closing
 }
 
-class ExtraNativeWebSocket {
+class ExtraNativeWebSocket extends Emitter<{
+  message: [event: MessageEvent]
+  close: [event: CloseEvent]
+  error: [event: Event]
+  open: [event: Event]
+}> {
   constructor(createWebSocket: () => WebSocket)
 
   getState(): State
@@ -42,16 +49,6 @@ class ExtraNativeWebSocket {
   connect(): Promise<void>
   close(code?: number, reason?: string): Promise<void>
   send(data: unknown): void
-
-  addEventListener(event: 'message', listener: (event: MessageEvent) => void): void
-  addEventListener(event: 'close', listener: (event: CloseEvent) => void): void
-  addEventListener(event: 'error', listener: (event: Event) => void): void
-  addEventListener(event: 'open', listener: (event: Event) => void): void
-
-  removeEventListener(event: 'message', listener: (event: MessageEvent) => void): void
-  removeEventListener(event: 'close', listener: (event: CloseEvent) => void): void
-  removeEventListener(event: 'error', listener: (event: Event) => void): void
-  removeEventListener(event: 'open', listener: (event: Event) => void): void
 }
 ```
 

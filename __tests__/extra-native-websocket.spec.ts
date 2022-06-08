@@ -1,8 +1,9 @@
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket'
 import { WebSocketError } from '@src/websocket-error'
-import { Server, Data } from 'ws'
+import { Server } from 'ws'
 import { delay } from 'extra-promise'
 import { getErrorPromise } from 'return-style'
+import { waitForEmitter } from '@blackglory/wait-for'
 
 describe('ExtraNativeWebsocket', () => {
   test('initial state is CLOSED', () => {
@@ -93,9 +94,10 @@ describe('ExtraNativeWebsocket', () => {
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
     try {
-      const promise = waitForMessage(ws)
+      const promise = waitForEmitter(ws, 'message')
       await ws.connect()
-      const message = await promise
+      const [event] = await promise
+      const message = (event as MessageEvent).data
 
       expect(message).toBe('foo')
     } finally {
@@ -114,7 +116,7 @@ describe('ExtraNativeWebsocket', () => {
       const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
       try {
         const messageListener = jest.fn()
-        ws.addEventListener('message', messageListener)
+        ws.on('message', messageListener)
         await ws.connect()
 
         await ws.close()
@@ -153,12 +155,3 @@ describe('ExtraNativeWebsocket', () => {
     })
   })
 })
-
-function waitForMessage(ws: ExtraNativeWebSocket): Promise<Data> {
-  return new Promise(resolve => {
-    ws.addEventListener('message', function listener(event) {
-      resolve(event.data)
-      ws.removeEventListener('message', listener)
-    })
-  })
-} 

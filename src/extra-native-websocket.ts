@@ -1,6 +1,6 @@
 import { assert } from '@blackglory/prelude'
 import { WebSocketError } from './websocket-error'
-import { Queue } from '@blackglory/structures'
+import { Queue, Emitter } from '@blackglory/structures'
 
 export enum BinaryType {
   Blob
@@ -21,13 +21,19 @@ enum ReadyState {
 , CLOSED = 3
 }
 
-export class ExtraNativeWebSocket {
+export class ExtraNativeWebSocket extends Emitter<{
+  message: [event: MessageEvent]
+  close: [event: CloseEvent]
+  error: [event: Event]
+  open: [event: Event]
+}> {
   private instance?: WebSocket
-  private eventListeners: Map<string, Set<Function>> = new Map()
   private binaryType: BinaryType = BinaryType.Blob
   protected unsentMessages = new Queue<string | ArrayBufferLike | Blob | ArrayBufferView>()
 
-  constructor(private createWebSocket: () => WebSocket) {}
+  constructor(private createWebSocket: () => WebSocket) {
+    super()
+  }
 
   getState(): State {
     if (this.instance) {
@@ -63,39 +69,6 @@ export class ExtraNativeWebSocket {
     }
   }
 
-  addEventListener(event: 'message', listener: (event: MessageEvent) => void): void
-  addEventListener(event: 'close', listener: (event: CloseEvent) => void): void
-  addEventListener(event: 'error', listener: (event: Event) => void): void
-  addEventListener(event: 'open', listener: (event: Event) => void): void
-  addEventListener(event: string, listener: Function): void {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, new Set())
-    }
-
-    const listeners = this.eventListeners.get(event)!
-    listeners.add(listener)
-
-    this.instance?.addEventListener(event as any, listener as any)
-  }
-
-  removeEventListener(event: 'message', listener: (event: MessageEvent) => void): void
-  removeEventListener(event: 'close', listener: (event: CloseEvent) => void): void
-  removeEventListener(event: 'error', listener: (event: Event) => void): void
-  removeEventListener(event: 'open', listener: (event: Event) => void): void
-  removeEventListener(event: string, listener: Function): void {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, new Set())
-    }
-
-    const listeners = this.eventListeners.get(event)!
-    listeners.delete(listener)
-    if (listeners.size === 0) {
-      this.eventListeners.delete(event)
-    }
-
-    this.instance?.removeEventListener(event as any, listener as any)
-  }
-
   /**
    * @throws {WebSocketError}
    */
@@ -107,11 +80,11 @@ export class ExtraNativeWebSocket {
       const ws = this.instance = this.createWebSocket()
 
       ws.addEventListener('error', errorListener, { once: true })
-      for (const [event, listeners] of this.eventListeners) {
-        for (const listener of listeners) {
-          ws.addEventListener(event as any, listener as any)
-        }
-      }
+
+      ws.addEventListener('open', event => this.emit('open', event))
+      ws.addEventListener('close', event => this.emit('close', event))
+      ws.addEventListener('message', event => this.emit('message', event))
+      ws.addEventListener('error', event => this.emit('error', event))
 
       this.setBinaryType(this.binaryType)
 
