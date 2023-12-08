@@ -1,10 +1,8 @@
-import { WebSocket as NodeWebSocket, WebSocketServer } from 'ws'
+import '@test/polyfill.js'
+import { WebSocketServer } from 'ws'
 import { autoReconnectWithExponentialBackOff } from '@utils/auto-reconnect-with-exponential-back-off.js'
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
 import { delay, promisify } from 'extra-promise'
-
-// 这是jest-environment-jsdom无法使用情况下的临时解决方案
-const WebSocket = NodeWebSocket as unknown as typeof globalThis.WebSocket
 
 describe('autoReconnectWithExponentialBackOff', () => {
   test('reconnect', async () => {

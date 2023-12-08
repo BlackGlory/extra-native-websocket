@@ -1,13 +1,11 @@
+import '@test/polyfill.js'
 import { jest } from '@jest/globals'
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
 import { WebSocketError } from '@src/websocket-error.js'
-import { WebSocket as NodeWebSocket, WebSocketServer } from 'ws'
+import { WebSocketServer } from 'ws'
 import { delay, promisify } from 'extra-promise'
 import { getErrorPromise } from 'return-style'
 import { waitForEmitter } from '@blackglory/wait-for'
-
-// 这是jest-environment-jsdom无法使用情况下的临时解决方案
-const WebSocket = NodeWebSocket as unknown as typeof globalThis.WebSocket
 
 describe('ExtraNativeWebsocket', () => {
   test('initial state is CLOSED', () => {
