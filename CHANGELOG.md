@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/BlackGlory/extra-native-websocket/compare/v0.3.2...v0.4.0) (2023-12-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* - CommonJS => ESM
+- The minimal Node.js is v18.17.0
+
+* upgrade dependencies ([df58bf9](https://github.com/BlackGlory/extra-native-websocket/commit/df58bf92ca7a25496478993941386c93239b77ae))
+
 ### [0.3.2](https://github.com/BlackGlory/extra-native-websocket/compare/v0.3.1...v0.3.2) (2023-06-10)
 
 
