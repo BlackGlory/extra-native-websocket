@@ -1,9 +1,13 @@
-import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket'
-import { WebSocketError } from '@src/websocket-error'
-import { Server } from 'ws'
-import { delay } from 'extra-promise'
+import { jest } from '@jest/globals'
+import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
+import { WebSocketError } from '@src/websocket-error.js'
+import { WebSocket as NodeWebSocket, WebSocketServer } from 'ws'
+import { delay, promisify } from 'extra-promise'
 import { getErrorPromise } from 'return-style'
 import { waitForEmitter } from '@blackglory/wait-for'
+
+// 这是jest-environment-jsdom无法使用情况下的临时解决方案
+const WebSocket = NodeWebSocket as unknown as typeof globalThis.WebSocket
 
 describe('ExtraNativeWebsocket', () => {
   test('initial state is CLOSED', () => {
@@ -15,7 +19,7 @@ describe('ExtraNativeWebsocket', () => {
   })
 
   test('connect', async () => {
-    const server = new Server({ port: 8080 })
+    const server = new WebSocketServer({ port: 8080 })
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
     try {
@@ -28,7 +32,7 @@ describe('ExtraNativeWebsocket', () => {
       expect(state2).toBe(State.Connected)
     } finally {
       await ws.close()
-      server.close()
+      await promisify(server.close.bind(server))()
     }
   })
 
@@ -39,7 +43,7 @@ describe('ExtraNativeWebsocket', () => {
           return this.unsentMessages.size
         }
       }
-      const server = new Server({ port: 8080 })
+      const server = new WebSocketServer({ port: 8080 })
       const messageListener = jest.fn()
       server.on('connection', socket => {
         socket.addEventListener('message', event => messageListener(event.data))
@@ -53,18 +57,18 @@ describe('ExtraNativeWebsocket', () => {
         await delay(1000)
         const countOfUnsentMessages2 = ws.countUnsentMessages()
 
-        expect(messageListener).toBeCalledTimes(1)
-        expect(messageListener).toBeCalledWith('foo')
+        expect(messageListener).toHaveBeenCalledTimes(1)
+        expect(messageListener).toHaveBeenCalledWith('foo')
         expect(countOfUnsentMessages1).toBe(1)
         expect(countOfUnsentMessages2).toBe(0)
       } finally {
         await ws.close()
-        server.close()
+        await promisify(server.close.bind(server))()
       }
     })
 
     test('connect', async () => {
-      const server = new Server({ port: 8080 })
+      const server = new WebSocketServer({ port: 8080 })
       const messageListener = jest.fn()
       server.on('connection', socket => {
         socket.addEventListener('message', event => messageListener(event.data))
@@ -77,17 +81,17 @@ describe('ExtraNativeWebsocket', () => {
         ws.send('foo')
         await delay(1000)
 
-        expect(messageListener).toBeCalledTimes(1)
-        expect(messageListener).toBeCalledWith('foo')
+        expect(messageListener).toHaveBeenCalledTimes(1)
+        expect(messageListener).toHaveBeenCalledWith('foo')
       } finally {
         await ws.close()
-        server.close()
+        await promisify(server.close.bind(server))()
       }
     })
   })
 
   test('listen', async () => {
-    const server = new Server({ port: 8080 })
+    const server = new WebSocketServer({ port: 8080 })
     server.on('connection', socket => {
       socket.send('foo')
     })
@@ -102,13 +106,13 @@ describe('ExtraNativeWebsocket', () => {
       expect(message).toBe('foo')
     } finally {
       await ws.close()
-      server.close()
+      await promisify(server.close.bind(server))()
     }
   })
 
   describe('reconnect', () => {
     test('receive messages from outdated listeners', async () => {
-      const server = new Server({ port: 8080 })
+      const server = new WebSocketServer({ port: 8080 })
       server.on('connection', socket => {
         socket.send('hello')
       })
@@ -123,10 +127,10 @@ describe('ExtraNativeWebsocket', () => {
         await ws.connect()
         await delay(1000)
 
-        expect(messageListener).toBeCalledTimes(2)
+        expect(messageListener).toHaveBeenCalledTimes(2)
       } finally {
         await ws.close()
-        server.close()
+        await promisify(server.close.bind(server))()
       }
     })
   })
@@ -142,15 +146,16 @@ describe('ExtraNativeWebsocket', () => {
     })
 
     test('server down', async () => {
-      const server = new Server({ port: 8080 })
+      const server = new WebSocketServer({ port: 8080 })
 
       const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
       try {
         await ws.connect()
-        server.close()
+        server.clients.forEach(client => client.close())
+        await delay(1000)
       } finally {
         await ws.close()
-        server.close()
+        await promisify(server.close.bind(server))()
       }
     })
   })

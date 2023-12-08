@@ -1,5 +1,5 @@
 import { assert } from '@blackglory/prelude'
-import { WebSocketError } from './websocket-error'
+import { WebSocketError } from './websocket-error.js'
 import { Queue, Emitter } from '@blackglory/structures'
 
 export enum BinaryType {
@@ -21,6 +21,8 @@ enum ReadyState {
 , CLOSED = 3
 }
 
+type Data = string | ArrayBufferLike | Blob | ArrayBufferView
+
 export class ExtraNativeWebSocket extends Emitter<{
   open: [event: Event]
   message: [event: MessageEvent]
@@ -29,7 +31,7 @@ export class ExtraNativeWebSocket extends Emitter<{
 }> {
   private instance?: WebSocket
   private binaryType: BinaryType = BinaryType.Blob
-  protected unsentMessages = new Queue<string | ArrayBufferLike | Blob | ArrayBufferView>()
+  protected unsentMessages = new Queue<Data>()
 
   constructor(private createWebSocket: () => WebSocket) {
     super()
@@ -127,7 +129,7 @@ export class ExtraNativeWebSocket extends Emitter<{
     })
   }
 
-  send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void {
+  send(data: Data): void {
     if (this.getState() === State.Connected) {
       this.instance!.send(data)
     } else {

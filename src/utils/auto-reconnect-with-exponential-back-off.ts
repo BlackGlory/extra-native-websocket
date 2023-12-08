@@ -1,4 +1,4 @@
-import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket'
+import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
 import { calculateExponentialBackoffTimeout } from 'extra-timers'
 import { pass } from '@blackglory/prelude'
 import { delay } from 'extra-promise'

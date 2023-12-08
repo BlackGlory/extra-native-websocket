@@ -1,17 +1,20 @@
-import { Server } from 'ws'
-import { autoReconnectWithExponentialBackOff } from '@utils/auto-reconnect-with-exponential-back-off'
-import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket'
-import { delay } from 'extra-promise'
+import { WebSocket as NodeWebSocket, WebSocketServer } from 'ws'
+import { autoReconnectWithExponentialBackOff } from '@utils/auto-reconnect-with-exponential-back-off.js'
+import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
+import { delay, promisify } from 'extra-promise'
+
+// 这是jest-environment-jsdom无法使用情况下的临时解决方案
+const WebSocket = NodeWebSocket as unknown as typeof globalThis.WebSocket
 
 describe('autoReconnectWithExponentialBackOff', () => {
   test('reconnect', async () => {
-    const server = new Server({ port: 8080 })
+    const server = new WebSocketServer({ port: 8080 })
     server.on('connection', socket => {
       socket.on('message', () => socket.close())
     })
 
     const ws = new ExtraNativeWebSocket(() => new WebSocket('ws://localhost:8080'))
-    const cancel = autoReconnectWithExponentialBackOff (ws, {
+    const cancel = autoReconnectWithExponentialBackOff(ws, {
       baseTimeout: 0
     , jitter: false
     })
@@ -25,12 +28,12 @@ describe('autoReconnectWithExponentialBackOff', () => {
     } finally {
       cancel()
       await ws.close()
-      server.close()
+      await promisify(server.close.bind(server))()
     }
   })
 
   test('timeout', async () => {
-    const server = new Server({ port: 8080 })
+    const server = new WebSocketServer({ port: 8080 })
     server.on('connection', socket => {
       socket.on('message', () => socket.close())
     })
@@ -53,12 +56,12 @@ describe('autoReconnectWithExponentialBackOff', () => {
     } finally {
       cancel()
       await ws.close()
-      server.close()
+      await promisify(server.close.bind(server))()
     }
   })
 
   test('cancel', async () => {
-    const server = new Server({ port: 8080 })
+    const server = new WebSocketServer({ port: 8080 })
     server.on('connection', socket => {
       socket.on('message', () => socket.close())
     })
@@ -79,7 +82,7 @@ describe('autoReconnectWithExponentialBackOff', () => {
     } finally {
       cancel()
       await ws.close()
-      server.close()
+      await promisify(server.close.bind(server))()
     }
   })
 })

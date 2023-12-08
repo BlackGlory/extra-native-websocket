@@ -1,3 +1,3 @@
-export * from './extra-native-websocket'
-export * from './websocket-error'
-export * from './utils'
+export * from './extra-native-websocket.js'
+export * from './websocket-error.js'
+export * from './utils/index.js'
