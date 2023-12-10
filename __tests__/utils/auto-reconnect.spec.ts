@@ -1,4 +1,4 @@
-import '@test/polyfill.js'
+import { describe, test, expect } from 'vitest'
 import { WebSocketServer } from 'ws'
 import { autoReconnect } from '@utils/auto-reconnect.js'
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'

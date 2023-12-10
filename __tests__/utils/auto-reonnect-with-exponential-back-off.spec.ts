@@ -1,4 +1,4 @@
-import '@test/polyfill.js'
+import { describe, test, expect } from 'vitest'
 import { WebSocketServer } from 'ws'
 import { autoReconnectWithExponentialBackOff } from '@utils/auto-reconnect-with-exponential-back-off.js'
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'

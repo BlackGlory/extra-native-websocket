@@ -1,5 +1,4 @@
-import '@test/polyfill.js'
-import { jest } from '@jest/globals'
+import { describe, test, expect, vi as jest } from 'vitest'
 import { ExtraNativeWebSocket, State } from '@src/extra-native-websocket.js'
 import { WebSocketError } from '@src/websocket-error.js'
 import { WebSocketServer } from 'ws'
