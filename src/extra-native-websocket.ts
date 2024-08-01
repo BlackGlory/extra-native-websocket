@@ -1,6 +1,7 @@
 import { assert } from '@blackglory/prelude'
 import { WebSocketError } from './websocket-error.js'
 import { Queue, Emitter } from '@blackglory/structures'
+import { SyncDestructor } from 'extra-defer'
 
 export enum BinaryType {
   Blob
@@ -74,35 +75,68 @@ export class ExtraNativeWebSocket extends Emitter<{
   /**
    * @throws {WebSocketError}
    */
-  connect(): Promise<void> {
+  connect(signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
+      signal?.throwIfAborted()
       assert(this.getState() === State.Closed, 'WebSocket is not closed')
 
       const self = this
-      const ws = this.instance = this.createWebSocket()
+      const ws = this.createWebSocket()
+      this.instance = ws
 
+      signal?.addEventListener('abort', abortListener, { once: true })
+
+      const destructor = new SyncDestructor()
       ws.addEventListener('error', errorListener, { once: true })
+      destructor.defer(() => ws.removeEventListener('error', errorListener))
 
-      ws.addEventListener('open', event => this.emit('open', event))
-      ws.addEventListener('message', event => this.emit('message', event))
-      ws.addEventListener('error', event => this.emit('error', event))
-      ws.addEventListener('close', event => this.emit('close', event))
+      {
+        const listener = (event: Event) => this.emit('open', event)
+        ws.addEventListener('open', listener)
+        destructor.defer(() => ws.removeEventListener('open', listener))
+      }
+      {
+        const listener = (event: MessageEvent) => this.emit('message', event)
+        ws.addEventListener('message', listener)
+        destructor.defer(() => ws.removeEventListener('message', listener))
+      }
+      {
+        const listener = (event: Event) => this.emit('error', event)
+        ws.addEventListener('error', listener)
+        destructor.defer(() => ws.removeEventListener('error', listener))
+      }
+      {
+        const listener = (event: CloseEvent) => this.emit('close', event)
+        ws.addEventListener('close', listener)
+        destructor.defer(() => ws.removeEventListener('close', listener))
+      }
 
       this.setBinaryType(this.binaryType)
 
       ws.addEventListener('open', openListener, { once: true })
 
-      function errorListener(event: Event): void {
-        ws.addEventListener('close', closeListener, { once: true })
+      function abortListener(): void {
+        assert(signal)
+
+        destructor.execute()
+        ws.close()
+
+        reject(signal.reason)
       }
 
-      function closeListener(event: CloseEvent): void {
-        reject(new WebSocketError(event.code, event.reason))
+      function errorListener(event: Event): void {
+        ws.addEventListener('close', closeListener, { once: true })
+
+        function closeListener(event: CloseEvent): void {
+          destructor.execute()
+
+          reject(new WebSocketError(event.code, event.reason))
+        }
       }
 
       function openListener(event: Event): void {
         ws.removeEventListener('error', errorListener)
-        ws.removeEventListener('close', closeListener)
+
         for (let size = self.unsentMessages.size; size--;) {
           self.send(self.unsentMessages.dequeue()!)
         }

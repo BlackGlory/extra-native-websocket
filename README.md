@@ -46,7 +46,7 @@ class ExtraNativeWebSocket extends Emitter<{
   /**
    * @throws {WebSocketError}
    */
-  connect(): Promise<void>
+  connect(signal?: AbortSignal): Promise<void>
   close(code?: number, reason?: string): Promise<void>
   send(data: string | ArrayBufferLike | Blob | ArrayBufferView): void
 }
@@ -54,7 +54,11 @@ class ExtraNativeWebSocket extends Emitter<{
 
 ### autoReconnect
 ```ts
-function autoReconnect(ws: ExtraNativeWebSocket, timeout?: number): () => void
+function autoReconnect(
+  ws: ExtraNativeWebSocket
+, reconnectTimeout?: number = 0
+, connectTimeout?: number
+): () => void
 ```
 
 ### autoReconnectWithExponentialBackOff
@@ -63,9 +67,10 @@ function autoReonnectWithExponentialBackOff(
   ws: ExtraWebSocket
 , options: {
     baseTimeout: number
-    maxTimeout?: number
+    maxTimeout?: number = Infinity
     factor?: number = 2
     jitter?: boolean = true
+    connectTimeout?: number
   }
 ): () => void
 ```

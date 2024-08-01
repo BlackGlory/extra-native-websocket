@@ -61,6 +61,7 @@
     "@blackglory/structures": "^0.13.4",
     "@blackglory/wait-for": "^0.7.4",
     "extra-abort": "^0.3.7",
+    "extra-defer": "^0.3.0",
     "extra-promise": "^6.0.8"
   }
 }
