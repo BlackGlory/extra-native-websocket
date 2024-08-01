@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.1](https://github.com/BlackGlory/extra-native-websocket/compare/v0.4.0...v0.4.1) (2024-08-01)
+
+
+### Features
+
+* improve `connect` ([c77bd44](https://github.com/BlackGlory/extra-native-websocket/commit/c77bd44cde4ef1beb632edabb7523fec08c366d2))
+
 ## [0.4.0](https://github.com/BlackGlory/extra-native-websocket/compare/v0.3.2...v0.4.0) (2023-12-08)
 
 
