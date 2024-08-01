@@ -3,7 +3,7 @@ import { calculateExponentialBackoffTimeout } from 'extra-timers'
 import { pass } from '@blackglory/prelude'
 import { delay } from 'extra-promise'
 import { waitForFunction } from '@blackglory/wait-for'
-import { timeoutSignal } from 'extra-abort'
+import { AbortController, timeoutSignal } from 'extra-abort'
 
 export function autoReconnectWithExponentialBackOff(
   ws: ExtraNativeWebSocket
