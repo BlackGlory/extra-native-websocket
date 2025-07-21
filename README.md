@@ -65,12 +65,12 @@ function autoReconnect(
 ```ts
 function autoReonnectWithExponentialBackOff(
   ws: ExtraWebSocket
-, options: {
-    baseTimeout: number
-    maxTimeout?: number = Infinity
+, reconnectInterval: {
+    baseInterval: number
+    maxInterval?: number = Infinity
     factor?: number = 2
     jitter?: boolean = true
-    connectTimeout?: number
   }
+, connectTimeout?: number
 ): () => void
 ```
