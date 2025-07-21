@@ -56,7 +56,7 @@ class ExtraNativeWebSocket extends Emitter<{
 ```ts
 function autoReconnect(
   ws: ExtraNativeWebSocket
-, reconnectTimeout?: number = 0
+, reconnectInterval?: number = 0
 , connectTimeout?: number
 ): () => void
 ```
