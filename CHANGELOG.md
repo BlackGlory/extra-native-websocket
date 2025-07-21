@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/BlackGlory/extra-native-websocket/compare/v0.4.1...v0.5.0) (2025-07-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **auto-reconnect-with-exponential-back-off:** Redesigned params of `autoReconnectWithExponentialBackOff`
+* Node.js v18 => v22
+
+* **auto-reconnect-with-exponential-back-off:** improve params ([452a9e0](https://github.com/BlackGlory/extra-native-websocket/commit/452a9e07cd0ca012545605af890b7a9ba87e61fc))
+* upgrade dependencies ([41fce62](https://github.com/BlackGlory/extra-native-websocket/commit/41fce624b3fc1dc655739abae0790c2bd78500b1))
+
 ### [0.4.1](https://github.com/BlackGlory/extra-native-websocket/compare/v0.4.0...v0.4.1) (2024-08-01)
 
 
